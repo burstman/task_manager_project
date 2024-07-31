@@ -1,0 +1,19 @@
+package layouts
+
+import "taskManager/app/views/components"
+
+templ App() {
+	@BaseLayout() {
+		@components.Navigation()
+		<div class="max-w-xl mx-auto">
+			<div class="container">
+				<h1 class="text-primary-foreground">Hello, World!</h1>
+				<p class="text-red-500">This text is red.</p>
+				<p class="text-blue-500">This text is blue.</p>
+				<p class="text-green-700">This text is green.</p>
+				<p class="text-violet-800">This text is yellow.</p>
+			</div>
+			{ children... }
+		</div>
+	}
+}
