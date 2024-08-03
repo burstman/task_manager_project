@@ -1,0 +1,92 @@
+package taskManagerLayout
+
+import (
+	"fmt"
+	"taskManager/app/views/components"
+	"taskManager/app/views/layouts"
+)
+
+var projects = []string{"Brakli Galleri", "Bigo Ecommerce", "Youtube Researcher", "Find Me Teacher"}
+
+templ ProjectList(projects []string) {
+	for _, project := range projects {
+		<button class="text-left">{ project }</button>
+	}
+}
+
+templ Base(data any) {
+	@layouts.BaseLayout() {
+		@components.Navigation()
+		<div class="flex">
+			<nav class="h-full border shadow-md gap-2 w-64">
+				<div class="flex flex-col border shadow-md gap-2 px-4 py-2">
+					@SideBarButton("Activity", "/#", 0)
+					@SideBarButton("Tasks", "#", 35)
+					<div class="text-xs py-2">Menu</div>
+					@SideBarButton("Overview", "#", 0)
+					@SideBarButton("Projects", "#", 5)
+					@SideBarButton("Messenger", "#", 10)
+					@SideBarButton("Calendar", "#", 0)
+					@SideBarButton("Team Members", "#", 0)
+					@SideBarButton("Settings", "#", 0)
+				</div>
+				<div class="flex flex-col  border shadow-md gap-2 px-4 py-2">
+					<div class="font-bold">Projects</div>
+					@ProjectList(projects)
+				</div>
+				<div class=" flex flex-col-reverse  px-4 py-2 mt-44 ">
+					@SideBarButton("Logout", "#", 0)
+					@SideBarButton("test", "#", 0)
+				</div>
+			</nav>
+			<div class="flex flex-col flex-grow">
+				<nav class="w-full border shadow-md p-4">
+					<span class="text-2xl">Brakli Galleri</span>
+					<div class="justify-start flex flex-row gap-x-16 mt-5">
+						@TopBar("Overview", true)
+						@TopBar("Board", false)
+						@TopBar("Member", false)
+						@TopBar("Files(25)", false)
+						@TopBar("Timeline", false)
+						@TopBar("Reports(4)", false)
+					</div>
+				</nav>
+				{ children... }
+				// <div class="flex flex-col w-full h-full">
+				// 	<div class="flex flex-row w-full h-1/2">
+				// 		<!-- project info -->
+				// 		//@ProjectInfo()
+				// 		<!-- project status -->
+				// 		//@ProjectStatus()
+				// 	</div>
+				// 	<div class="flex flex-row w-full h-1/2 ">
+				// 		<!--Todays tasks-->
+				// 		//@TodaysTasks(data)
+				// 		<!--Recent Activity-->
+				// 		//@RecentActivity()
+				// 	</div>
+				// </div>
+			</div>
+		</div>
+	}
+}
+
+templ SideBarButton(text string, link string, count int) {
+	<button class="flex flex-row items-center justify-between border shadow-md w-full px-4 py-2">
+		<span class="text-gray-600">{ text }</span>
+		<div class="flex items-center">
+			if count > 0 {
+				<span class="bg-blue-700 text-white px-2 py-1 rounded-full text-xs ml-2">{ fmt.Sprint(count) }</span>
+			}
+			<a href={ templ.SafeURL(link) } class="ml-2"></a>
+		</div>
+	</button>
+}
+
+templ TopBar(text string, activate bool) {
+	if activate {
+		<button class="font-bold">{ text }</button>
+	} else {
+		<button>{ text }</button>
+	}
+}

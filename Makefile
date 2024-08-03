@@ -44,7 +44,7 @@ server:
 
 # run tailwindcss to generate the styles.css bundle in watch mode.
 watch-assets:
-	@npx tailwindcss build -i ./app/assets/app.css -o ./public/assets/styles.css --minify --watch
+	@npx tailwindcss build -i ./app/assets/app.css -o ./public/assets/styles.css --watch
 
 # run esbuild to generate the index.js bundle in watch mode.
 watch-esbuild:

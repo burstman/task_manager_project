@@ -1,0 +1,145 @@
+package taskManagerLayout
+
+import "encoding/json"
+
+//var projects = []string{"Brakli Galleri", "Bigo Ecommerce", "Youtube Researcher", "Find Me Teacher"}
+
+func toJSON(v any) string {
+	b, _ := json.Marshal(v)
+	return string(b)
+}
+
+templ Overview(data any) {
+	@Base(data) {
+		<div class="flex flex-col w-full h-full">
+			<div class="flex flex-row w-full h-3/5">
+				<!-- project info -->
+				<div class="w-2/3">
+					@ProjectInfo()
+				</div>
+				<!-- project status -->
+				<div class="w-1/3">
+					@ProjectStatus()
+				</div>
+			</div>
+			<div class="flex flex-row w-full h-2/5 ">
+				<!--Todays tasks-->
+				@TodaysTasks(data)
+				<!--Recent Activity-->
+				@RecentActivity()
+			</div>
+		</div>
+	}
+}
+
+templ RecentActivity() {
+	<section id="recent_activity" class="w-1/3 h-full border-8 shadow-md ">Recent activity</section>
+}
+
+templ TodaysTasks(data any) {
+	<section id="todays_tasks" class="w-2/3 h-full border-8 shadow-md p-4 text-xl flex flex-col">
+		<span class="font-bold text-3xl mb-4">Todays tasks</span>
+		<div class="overflow-y-auto h-64">
+			@TodaysTasklist(data, 10)
+		</div>
+	</section>
+}
+
+templ TodaysTasklist(percentage any, numTask int) {
+	for i:=0;i< numTask;i++ {
+		<table class="text-left w-full mb-4 border-4 border-dotted">
+			<tr>
+				<th>Start From</th>
+				<th>Design</th>
+				<th class="text-left" x-data={ toJSON(percentage) }>
+					<span x-text="progress"></span>
+					% Complete
+				</th>
+				<th>Assigned To</th>
+			</tr>
+			<tr>
+				<td>9:00 AM</td>
+				<td>Prepare Figma File</td>
+				<td>
+					<div
+						x-data={ toJSON(percentage) }
+						class="relative w-1/2 h-3 overflow-hidden rounded-full bg-neutral-100"
+					>
+						<span :style="'width:' + progress + '%'" class="absolute w-24 h-full duration-300 ease-linear bg-cyan-500" x-cloak></span>
+					</div>
+				</td>
+				<td>Flissi Hamed</td>
+			</tr>
+		</table>
+	}
+}
+
+templ ProjectInfo() {
+	<section id="project_info" class="h-full flex flex-col  border-8 shadow-md gap-2 p-4">
+		<span class="font-bold text-3xl">Project info</span>
+		<p id="info">This overnight museum was designed by 15 Artists and 9 Art Directors, who created 31 Art works "in which you can sleep in" and a vertical gallery of 30 meters high.To express the depth of this "place for experimentation that is nor a museum, nor a hotel", we chose to play around the minimal concept of a white cube, inspired by the architecture of the building.</p>
+		<div>
+			<table class="text-left w-4/5">
+				<tr>
+					<th>Client</th>
+					<th>Start date</th>
+					<th>Deadline</th>
+					<th>Team members</th>
+					<th>Reports</th>
+				</tr>
+				<tr>
+					<td>Art Governement</td>
+					<td>7-6-2022</td>
+					<td>7-7-2022</td>
+					<td>12</td>
+					<td>5</td>
+				</tr>
+			</table>
+		</div>
+		<div id="project_leader" class="flex flex-col gap-3">
+			<span>Project leader</span>
+			<div class="flex flex-row gap-3">
+				<div id="image" class="bg-red-600 border rounded-full shadow-md">img</div>
+				<div class="flex flex-col">
+					<span>Flissi Hamed</span>
+					<span>Admin/Product manager</span>
+				</div>
+			</div>
+			<span>Project type</span>
+			<span>Art Direction-Video Production-Website</span>
+		</div>
+	</section>
+}
+
+templ ProjectStatus() {
+	<section id="project_status" class="w-full h-fit border-8 shadow-md p-4 ">
+		<span class="font-bold text-xl">Project status</span>
+		<ul class="flex flex-col px-10 gap-5 text-xl py-1 ">
+			<li class="border shadow-md py-4 flex  justify-between">
+				<span class="px-2">Time Remaining</span>
+				<span class="px-2">4d</span>
+			</li>
+			<li class="border shadow-md py-4 flex  justify-between">
+				<span class="px-2">Created Task</span>
+				<span class="px-2">25</span>
+			</li>
+			<li class="border shadow-md py-4 flex  justify-between">
+				<span class="px-2">Task in Progress</span>
+				<span class="px-2">12</span>
+			</li>
+			<li class="border shadow-md py-4 flex  justify-between">
+				<span class="px-2">Upcoming Tasks</span>
+				<span class="px-2">5</span>
+			</li>
+			<li class="border shadow-md py-2 ">
+				<div class="flex justify-between">
+					<span class="px-2">Overall Process</span>
+					<span class="px-2">70</span>
+				</div>
+				<div class="py-2">
+					<span>----test-----</span>
+				</div>
+			</li>
+		</ul>
+	</section>
+}
