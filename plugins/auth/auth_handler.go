@@ -1,11 +1,11 @@
 package auth
 
 import (
-	"taskManager/app/db"
 	"database/sql"
 	"net/http"
 	"os"
 	"strconv"
+	"taskManager/app/db"
 	"time"
 
 	"github.com/anthdm/superkit/kit"

@@ -64,3 +64,17 @@
     }
   }
 }
+
+
+
+
+/* Ensure bold styling for checked items */
+input[type="radio"]:checked+label {
+  @apply font-bold;
+  /* Use Tailwind's apply directive */
+}
+
+/* Add smooth transition for font weight changes */
+label {
+  @apply transition;
+}

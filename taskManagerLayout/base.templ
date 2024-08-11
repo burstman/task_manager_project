@@ -6,15 +6,9 @@ import (
 	"taskManager/app/views/layouts"
 )
 
-var projects = []string{"Brakli Galleri", "Bigo Ecommerce", "Youtube Researcher", "Find Me Teacher"}
+var ActiveContent string
 
-templ ProjectList(projects []string) {
-	for _, project := range projects {
-		<button class="text-left">{ project }</button>
-	}
-}
-
-templ Base(data any) {
+templ Base(data, processData any) {
 	@layouts.BaseLayout() {
 		@components.Navigation()
 		<div class="flex">
@@ -43,36 +37,19 @@ templ Base(data any) {
 				<nav class="w-full border shadow-md p-4">
 					<span class="text-2xl">Brakli Galleri</span>
 					<div class="justify-start flex flex-row gap-x-16 mt-5">
-						@TopBar("Overview", true)
-						@TopBar("Board", false)
-						@TopBar("Member", false)
-						@TopBar("Files(25)", false)
-						@TopBar("Timeline", false)
-						@TopBar("Reports(4)", false)
+						@TopBar(buttonsTexts, hxUrl)
 					</div>
 				</nav>
-				{ children... }
-				// <div class="flex flex-col w-full h-full">
-				// 	<div class="flex flex-row w-full h-1/2">
-				// 		<!-- project info -->
-				// 		//@ProjectInfo()
-				// 		<!-- project status -->
-				// 		//@ProjectStatus()
-				// 	</div>
-				// 	<div class="flex flex-row w-full h-1/2 ">
-				// 		<!--Todays tasks-->
-				// 		//@TodaysTasks(data)
-				// 		<!--Recent Activity-->
-				// 		//@RecentActivity()
-				// 	</div>
-				// </div>
+				<div id="dynamic-content">
+					@Overview(data, processData)
+				</div>
 			</div>
 		</div>
 	}
 }
 
 templ SideBarButton(text string, link string, count int) {
-	<button class="flex flex-row items-center justify-between border shadow-md w-full px-4 py-2">
+	<button class="flex flex-row items-center justify-between border shadow-md w-56 px-4 whitespace-nowrap py-2">
 		<span class="text-gray-600">{ text }</span>
 		<div class="flex items-center">
 			if count > 0 {
@@ -83,10 +60,13 @@ templ SideBarButton(text string, link string, count int) {
 	</button>
 }
 
-templ TopBar(text string, activate bool) {
-	if activate {
-		<button class="font-bold">{ text }</button>
-	} else {
-		<button>{ text }</button>
+var buttonsTexts = []string{"overview", "board", "members", "files", "timeline", "reports"}
+var hxUrl = []string{"/content/overview", "/content/board", "/content/members", "/content/files", "/content/timeline", "/content/reports"}
+
+templ TopBar(buttonsNames []string, hxUrl []string) {
+	//<button class="font-bold" hx-get={ hxUrl } hx-target="#dynamic-content" hx-swap="innerHTML">{ text }</button>
+	for i,text:=range buttonsNames {
+		<input type="radio" id={ text } name="menu" class="hidden" checked/>
+		<label for={ text } hx-get={ hxUrl[i] } hx-target="#dynamic-content" hx-swap="innerHTML">{ text }</label>
 	}
 }
