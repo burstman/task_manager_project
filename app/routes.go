@@ -3,7 +3,6 @@ package app
 import (
 	"log/slog"
 	"taskManager/app/handlers"
-	"taskManager/app/middelware"
 	"taskManager/app/views/errors"
 	"taskManager/plugins/auth"
 
@@ -53,7 +52,6 @@ func InitializeRoutes(router *chi.Mux) {
 	// AuthenticationConfig.
 	router.Group(func(app chi.Router) {
 		app.Use(kit.WithAuthentication(authConfig, true)) // strict set to true
-		app.Use(middelware.HtmxMiddleware)
 		app.Get("/overview", kit.Handler(handlers.HandelerBaseOverView))
 		app.Get("/content/overview", kit.Handler(handlers.HandelOverview))
 		app.Get("/content/board", kit.Handler(handlers.HandelBoard))

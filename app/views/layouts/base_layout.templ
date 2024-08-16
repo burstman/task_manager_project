@@ -23,6 +23,8 @@ templ BaseLayout() {
 			<script src="https://unpkg.com/htmx.org@1.9.9" defer></script>
 		</head>
 		<body x-data="{theme: 'dark'}" :class="theme" lang="en">
+			<div id="rasa-chat-widget" data-websocket-url="http://0.0.0.0:5005/socket.io"></div>
+			<script src="https://unpkg.com/@rasahq/rasa-chat" type="application/javascript"></script>
 			{ children... }
 		</body>
 	</html>
