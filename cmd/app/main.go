@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"taskManager/app"
+	"taskManager/chat"
 	"taskManager/public"
 
 	"github.com/anthdm/superkit/kit"
@@ -29,6 +30,7 @@ func main() {
 	router.HandleFunc("/*", kit.Handler(app.NotFoundHandler))
 
 	app.InitializeRoutes(router)
+	chat.InitializeRoutes(router)
 	app.RegisterEvents()
 
 	listenAddr := os.Getenv("HTTP_LISTEN_ADDR")

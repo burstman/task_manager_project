@@ -33,6 +33,8 @@ func (auth Auth) Check() bool {
 	return auth.LoggedIn
 }
 
+// User represents a user of the application. It contains the user's email, first and last name,
+// password hash, email verification status, and timestamps for creation and updates.
 type User struct {
 	gorm.Model
 

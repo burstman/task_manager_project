@@ -4,9 +4,18 @@ import (
 	"fmt"
 	"taskManager/app/views/components"
 	"taskManager/app/views/layouts"
+	"taskManager/chat"
 )
 
 var ActiveContent string
+
+var Projects = []string{"Brakli Galleri", "Bigo Ecommerce", "Youtube Researcher", "Find Me Teacher"}
+
+templ ProjectList(projects []string) {
+	for _, project := range projects {
+		<button class="text-left">{ project }</button>
+	}
+}
 
 templ Base(data, processData any) {
 	@layouts.BaseLayout() {
@@ -26,7 +35,7 @@ templ Base(data, processData any) {
 				</div>
 				<div class="flex flex-col  border shadow-md gap-2 px-4 py-2">
 					<div class="font-bold">Projects</div>
-					@ProjectList(projects)
+					@ProjectList(Projects)
 				</div>
 				<div class=" flex flex-col-reverse  px-4 py-2 mt-44 ">
 					@SideBarButton("Logout", "#", 0)
@@ -40,6 +49,7 @@ templ Base(data, processData any) {
 						@TopBar(buttonsTexts, hxUrl)
 					</div>
 				</nav>
+				@chat.Interface(1, "hamed")
 				<div id="dynamic-content">
 					@Overview(data, processData)
 				</div>

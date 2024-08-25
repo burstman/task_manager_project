@@ -2,14 +2,6 @@ package taskManagerLayout
 
 import "encoding/json"
 
-var projects = []string{"Brakli Galleri", "Bigo Ecommerce", "Youtube Researcher", "Find Me Teacher"}
-
-templ ProjectList(projects []string) {
-	for _, project := range projects {
-		<button class="text-left">{ project }</button>
-	}
-}
-
 func toJSON(v any) string {
 	b, _ := json.Marshal(v)
 	return string(b)

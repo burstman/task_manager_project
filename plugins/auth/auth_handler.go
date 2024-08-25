@@ -33,6 +33,10 @@ func HandleLoginIndex(kit *kit.Kit) error {
 	return kit.Render(LoginIndex(LoginIndexPageData{}))
 }
 
+// HandleLoginCreate handles the login form submission. It validates the form data,
+// checks the user's credentials, and creates a new session if the login is successful.
+// If the user's email is not verified, it adds an error to the form and re-renders the login form.
+// If the login is successful, it redirects the user to the configured redirect URL after login.
 func HandleLoginCreate(kit *kit.Kit) error {
 	var values LoginFormValues
 	errors, ok := v.Request(kit.Request, &values, authSchema)
@@ -79,6 +83,7 @@ func HandleLoginCreate(kit *kit.Kit) error {
 
 	sess := kit.GetSession(userSessionName)
 	sess.Values["sessionToken"] = session.Token
+	sess.Values["user"] = user
 	sess.Save(kit.Request, kit.Response)
 	redirectURL := kit.Getenv("SUPERKIT_AUTH_REDIRECT_AFTER_LOGIN", "/profile")
 
@@ -105,7 +110,8 @@ func HandleEmailVerify(kit *kit.Kit) error {
 	}
 
 	token, err := jwt.ParseWithClaims(
-		tokenStr, &jwt.RegisteredClaims{}, func(token *jwt.Token) (any, error) {
+		tokenStr, &jwt.RegisteredClaims{},
+		func(token *jwt.Token) (any, error) {
 			return []byte(os.Getenv("SUPERKIT_SECRET")), nil
 		}, jwt.WithLeeway(5*time.Second))
 	if err != nil {
@@ -148,6 +154,9 @@ func HandleEmailVerify(kit *kit.Kit) error {
 	return kit.Redirect(http.StatusSeeOther, "/login")
 }
 
+// AuthenticateUser retrieves the user's session token from the session and checks if the token is valid and not expired.
+// If the token is valid, it returns an Auth struct with the user's ID, email, and a LoggedIn flag set to true.
+// If the token is invalid or expired, it returns an empty Auth struct.
 func AuthenticateUser(kit *kit.Kit) (kit.Auth, error) {
 	auth := Auth{}
 	sess := kit.GetSession(userSessionName)
@@ -169,4 +178,14 @@ func AuthenticateUser(kit *kit.Kit) (kit.Auth, error) {
 		UserID:   session.User.ID,
 		Email:    session.User.Email,
 	}, nil
+}
+
+func UserHasRole(userID int, roleName string) bool {
+	// Query the database to check if the user has the specified role
+	return true
+}
+
+func UserHasPermission(userID uuid.UUID, permissionName string) bool {
+	// Query the database to check if the user has the specified permission
+	return true
 }
