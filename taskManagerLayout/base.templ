@@ -17,7 +17,7 @@ templ ProjectList(projects []string) {
 	}
 }
 
-templ Base(data, processData any) {
+templ Base(data, processData any, firstname string, userid uint) {
 	@layouts.BaseLayout() {
 		@components.Navigation()
 		<div class="flex">
@@ -49,7 +49,7 @@ templ Base(data, processData any) {
 						@TopBar(buttonsTexts, hxUrl)
 					</div>
 				</nav>
-				@chat.Interface(1, "hamed")
+				@chat.Interface(userid, firstname)
 				<div id="dynamic-content">
 					@Overview(data, processData)
 				</div>

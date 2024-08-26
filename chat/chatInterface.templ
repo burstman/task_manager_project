@@ -2,7 +2,7 @@ package chat
 
 import "fmt"
 
-templ Interface(userID int, userName string) {
+templ Interface(userID uint, userName string) {
 	<div id="user-data" data-userID={ fmt.Sprint(userID) } data-userName={ userName }>
 		<script>
         !(function () {
@@ -22,6 +22,7 @@ templ Interface(userID int, userName string) {
                             socketUrl: "http://0.0.0.0:5005",  // Update to your Rasa server URL
                             socketPath: "/socket.io/",
                             // Additional parameters can be added here
+                            title: "Hello " + username,
                             customData: {
                                 language: "en",
                                 user_id: userid,

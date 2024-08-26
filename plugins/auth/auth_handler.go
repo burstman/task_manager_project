@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	userSessionName = "user-session"
+	UserSessionName = "user-session"
 )
 
 var authSchema = v.Schema{
@@ -73,7 +73,7 @@ func HandleLoginCreate(kit *kit.Kit) error {
 		sessionExpiry = 48
 	}
 	session := Session{
-		UserID:    user.ID,
+		User:      user,
 		Token:     uuid.New().String(),
 		ExpiresAt: time.Now().Add(time.Hour * time.Duration(sessionExpiry)),
 	}
@@ -81,9 +81,10 @@ func HandleLoginCreate(kit *kit.Kit) error {
 		return err
 	}
 
-	sess := kit.GetSession(userSessionName)
+	sess := kit.GetSession(UserSessionName)
 	sess.Values["sessionToken"] = session.Token
-	sess.Values["user"] = user
+	sess.Values["firstName"] = session.User.FirstName
+	sess.Values["userid"] = session.User.ID
 	sess.Save(kit.Request, kit.Response)
 	redirectURL := kit.Getenv("SUPERKIT_AUTH_REDIRECT_AFTER_LOGIN", "/profile")
 
@@ -91,7 +92,7 @@ func HandleLoginCreate(kit *kit.Kit) error {
 }
 
 func HandleLoginDelete(kit *kit.Kit) error {
-	sess := kit.GetSession(userSessionName)
+	sess := kit.GetSession(UserSessionName)
 	defer func() {
 		sess.Values = map[any]any{}
 		sess.Save(kit.Request, kit.Response)
@@ -159,8 +160,9 @@ func HandleEmailVerify(kit *kit.Kit) error {
 // If the token is invalid or expired, it returns an empty Auth struct.
 func AuthenticateUser(kit *kit.Kit) (kit.Auth, error) {
 	auth := Auth{}
-	sess := kit.GetSession(userSessionName)
+	sess := kit.GetSession(UserSessionName)
 	token, ok := sess.Values["sessionToken"]
+	//fmt.Println("ok:", ok)
 	if !ok {
 		return auth, nil
 	}

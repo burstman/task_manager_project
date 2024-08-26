@@ -7,8 +7,8 @@ func toJSON(v any) string {
 	return string(b)
 }
 
-templ BaseOverView(data, processData any, activeContent string) {
-	@Base(data, processData) {
+templ BaseOverView(data, processData any, activeContent, firstname string, userid uint) {
+	@Base(data, processData, firstname, userid) {
 		<div class="flex flex-col w-full h-full">
 			<div class="flex flex-row w-full h-3/6">
 				<!-- project info -->

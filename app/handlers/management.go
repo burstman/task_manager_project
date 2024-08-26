@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"fmt"
+	"taskManager/plugins/auth"
 	"taskManager/taskManagerLayout"
 
 	"github.com/anthdm/superkit/kit"
@@ -19,8 +21,20 @@ var processData = map[string]any{
 
 func HandelerBaseOverView(kit *kit.Kit) error {
 
-	return kit.Render(taskManagerLayout.BaseOverView(percentTodayTasks, processData, "overview"))
+	session := kit.GetSession(auth.UserSessionName)
 
+	firstName, ok := session.Values["firstName"].(string)
+	if !ok {
+		return fmt.Errorf("error first name values")
+	}
+	userID, ok := session.Values["userid"].(uint)
+	if !ok {
+		return fmt.Errorf("error first name values")
+	}
+
+	fmt.Printf("%v:%v\n", firstName, userID)
+
+	return kit.Render(taskManagerLayout.BaseOverView(percentTodayTasks, processData, "overview", firstName, userID))
 }
 
 func HandelOverview(kit *kit.Kit) error {
