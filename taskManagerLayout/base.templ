@@ -9,7 +9,9 @@ import (
 
 var ActiveContent string
 
-var Projects = []string{"Brakli Galleri", "Bigo Ecommerce", "Youtube Researcher", "Find Me Teacher"}
+//var Projects = []string{"Brakli Galleri", "Bigo Ecommerce", "Youtube Researcher", "Find Me Teacher"}
+
+var Projects = GetAllProjectNames()
 
 templ ProjectList(projects []string) {
 	for _, project := range projects {
@@ -33,9 +35,11 @@ templ Base(data, processData any, firstname string, userid uint) {
 					@SideBarButton("Team Members", "#", 0)
 					@SideBarButton("Settings", "#", 0)
 				</div>
-				<div class="flex flex-col  border shadow-md gap-2 px-4 py-2">
+				<div class="flex flex-col  border shadow-md gap-2 px-4 py-2" hx-get="/projects/list" hx-trigger="every 2s" hx-target="#project-list">
 					<div class="font-bold">Projects</div>
-					@ProjectList(Projects)
+					<div id="project-list">
+						@ProjectList(Projects)
+					</div>
 				</div>
 				<div class=" flex flex-col-reverse  px-4 py-2 mt-44 ">
 					@SideBarButton("Logout", "#", 0)
@@ -50,9 +54,7 @@ templ Base(data, processData any, firstname string, userid uint) {
 					</div>
 				</nav>
 				@chat.Interface(userid, firstname)
-				<div id="dynamic-content">
-					@Overview(data, processData)
-				</div>
+				<div id="dynamic-content" hx-get="/content/overview" hx-trigger="load delay:100ms" hx-target="#dynamic-content" hx-swap="innerHTML"></div>
 			</div>
 		</div>
 	}

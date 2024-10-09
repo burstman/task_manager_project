@@ -13,7 +13,7 @@ templ Interface(userID uint, userName string) {
             let e = document.createElement("script"),
                 t = document.head || document.getElementsByTagName("head")[0];
             (e.src =
-                "https://cdn.jsdelivr.net/npm/rasa-webchat@1.x.x/lib/index.js"),
+                "https://cdn.jsdelivr.net/npm/rasa-webchat@1.0.1/lib/index.js"),
                 // Replace 1.x.x with the version that you want
                 (e.async = !0),
                 (e.onload = () => {
@@ -23,6 +23,8 @@ templ Interface(userID uint, userName string) {
                             socketPath: "/socket.io/",
                             // Additional parameters can be added here
                             title: "Hello " + username,
+                            initPayload: "/welcome",                         
+                            showMessageDate: true,
                             customData: {
                                 language: "en",
                                 user_id: userid,

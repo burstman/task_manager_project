@@ -19,7 +19,7 @@ var processData = map[string]any{
 	"progress": 90,
 }
 
-func HandelerBaseOverView(kit *kit.Kit) error {
+func HandelerBase(kit *kit.Kit) error {
 
 	session := kit.GetSession(auth.UserSessionName)
 
@@ -63,4 +63,10 @@ func HandelReport(kit *kit.Kit) error {
 func HandelFiles(kit *kit.Kit) error {
 
 	return kit.Render(taskManagerLayout.Files(processData))
+}
+
+func HandelProjectList(kit *kit.Kit) error {
+	projects := taskManagerLayout.GetAllProjectNames()
+
+	return kit.Render(taskManagerLayout.ProjectList(projects))
 }

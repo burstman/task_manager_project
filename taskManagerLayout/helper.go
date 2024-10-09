@@ -1,21 +1,20 @@
-package chat
+package taskManagerLayout
 
 import (
+	"log"
+	"taskManager/app/db"
 	"time"
 )
 
-// type Chatter interface {
-// 	SendMessage(message map[string]any) error
-// 	ReceiveMessage() (map[string]any, error)
-// }
-
-// type rasaChatBot struct {
-// 	serverUrl string
-// }
-
-// type Handler struct {
-// 	bot Chatter
-// }
+func GetAllProjectNames() []string {
+	var projectNames []string
+	result := db.Get().Model(&Project{}).Pluck("name", &projectNames)
+	if result.Error != nil {
+		log.Printf("Error fetching project names: %v", result.Error)
+		return nil
+	}
+	return projectNames
+}
 
 type Project struct {
 	ProjectID   uint      `gorm:"primaryKey;column:project_id" json:"project_id"`

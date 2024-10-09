@@ -1,17 +1,20 @@
 package chat
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 	"taskManager/app/db"
 
 	"github.com/anthdm/superkit/kit"
 	"github.com/go-chi/chi/v5"
+	"gorm.io/gorm"
 )
 
-// handelGetProject is an HTTP handler that fetches projects from the database
+// handelGetProjectWithDeadline is an HTTP handler that fetches projects from the database
 // based on the provided ID parameter in the URL. It then returns the projects
 // as a JSON response.
 //
@@ -21,18 +24,22 @@ import (
 //
 // The function calls the fetchProjectsFromDatabase function to retrieve the
 // projects, and then it creates a JSON response with the projects data.
-func handelGetProject(kit *kit.Kit) error {
+func handelGetProjectWithDeadline(kit *kit.Kit) error {
+
+	ctx := kit.Request.Context()
 	id := chi.URLParam(kit.Request, "user_id")
 	project := chi.URLParam(kit.Request, "name")
-	searchTerm := chi.URLParam(kit.Request, "searchterm")
-
+	deadline := chi.URLParam(kit.Request, "deadline")
 	userID, err := strconv.Atoi(id)
-
+	fmt.Println(userID)
 	if err != nil {
 		return kit.JSON(http.StatusUnprocessableEntity, map[string]string{"error": fmt.Sprintf("invalide id : %s", err)})
 	}
 
-	projects := fetchProjectsFromDatabase(userID, project, searchTerm)
+	projects, err := fetchProjectsFromDatabase(ctx, project, deadline)
+	if err != nil {
+		return kit.JSON(http.StatusInternalServerError, map[string]string{"error": fmt.Sprint(err)})
+	}
 
 	if len(projects) == 0 {
 		return kit.JSON(http.StatusOK, map[string]string{"info": "No Project found"})
@@ -42,11 +49,33 @@ func handelGetProject(kit *kit.Kit) error {
 		"projects": projects,
 	}
 
-	err = kit.JSON(http.StatusOK, response)
+	return kit.JSON(http.StatusOK, response)
+}
+
+func handelGetProject(kit *kit.Kit) error {
+
+	ctx := kit.Request.Context()
+	id := chi.URLParam(kit.Request, "user_id")
+	project := chi.URLParam(kit.Request, "name")
+	userID, err := strconv.Atoi(id)
+	fmt.Println(userID)
 	if err != nil {
-		return err
+		return kit.JSON(http.StatusUnprocessableEntity, map[string]string{"error": fmt.Sprintf("invalide id : %s", err)})
 	}
-	return nil
+	projects, err := fetchProjectsFromDatabase(ctx, project, "")
+	if err != nil {
+		return kit.JSON(http.StatusInternalServerError, map[string]string{"error": fmt.Sprint(err)})
+	}
+
+	if len(projects) == 0 {
+		return kit.JSON(http.StatusOK, map[string]string{"info": "No Project found"})
+	}
+
+	response := map[string]any{
+		"projects": projects,
+	}
+
+	return kit.JSON(http.StatusOK, response)
 }
 
 // handlePostProjects is an HTTP handler that creates a new project in the database.
@@ -63,6 +92,7 @@ func handelGetProject(kit *kit.Kit) error {
 // If the project is created successfully, it returns a 200 OK response with the
 // project ID and the user ID who created the project.
 func handlePostProjects(kit *kit.Kit) error {
+	//fmt.Println("test_request_project")
 	var project Project
 	err := json.NewDecoder(kit.Request.Body).Decode(&project)
 	if err != nil {
@@ -77,8 +107,8 @@ func handlePostProjects(kit *kit.Kit) error {
 	if row == 0 {
 		return kit.JSON(http.StatusOK, map[string]string{"info": fmt.Sprintf("Project %s all ready exist", project.Name)})
 	}
-
-	return kit.JSON(http.StatusOK, map[string]string{
+	kit.Response.Header().Set("HX-Trigger", "menuTrigger")
+	return kit.JSON(http.StatusCreated, map[string]string{
 		"info":       "Project created successfully ",
 		"project_id": fmt.Sprintf("%d", project.ProjectID),
 		"user_id":    fmt.Sprintf("%d", project.CreatedBy),
@@ -89,26 +119,61 @@ func handlePostProjects(kit *kit.Kit) error {
 // The function takes an integer id, a string project, and a string searchTerm as input parameters.
 // It constructs a database query to select project names where the name matches the provided project name or the name or description matches the search term.
 // The function returns a slice of strings containing the matching project names.
-func fetchProjectsFromDatabase(id int, project, searchTerm string) []string {
-	var results []string
+func fetchProjectsFromDatabase(ctx context.Context, name, deadline string) ([]Project, error) {
+	var results []Project
 
-	// Use a database query to fetch projects based on the project name or search term
-	// This is a placeholder query, adjust it according to your database schema and ORM
-	query := db.Get().Table("projects")
+	// Get the database connection and pass the context
+	query := db.Get().Table("projects").WithContext(ctx)
 
-	if project != "" {
-		query = query.Where("name LIKE ?", "%"+project+"%")
+	// Apply filtering based on project name or description
+	if len(name) != 0 {
+		lowerName := strings.ToLower(name)
+		query = query.Where("LOWER(name) LIKE ? OR LOWER(description) LIKE ?", "%"+lowerName+"%", "%"+lowerName+"%")
+	}
+	// Optionally filter by deadline if provided
+	if len(deadline) != 0 {
+		query = query.Where("deadline = ?", deadline)
+	}
+	// Limit the results and apply offset for pagination
+	//query = query.Limit(limit).Offset(offset)
+
+	// Execute the query and check for errors
+	err := query.Select("project_id,name,project_type, description, created_at,deadline, created_by").Find(&results).Error
+	if err != nil {
+		return nil, fmt.Errorf("error fetching projects: %v", err)
 	}
 
-	if searchTerm != "" {
-		query = query.Where("name LIKE ? OR description LIKE ?", "%"+searchTerm+"%", "%"+searchTerm+"%")
+	return results, nil
+}
+
+// handelGetSingleProject is an HTTP handler function that fetches a single project from the database based on the provided name parameter.
+// It takes a *kit.Kit as input, which contains the HTTP request context and other request-related information.
+// The function extracts the "user_id" and "name" parameters from the request URL, and then calls the fetchProjectFromDatabase function
+// to retrieve the project details. If the project is found, it is returned in the HTTP response with a status code of http.StatusCreated.
+// If an error occurs during the database fetch, a 500 Internal Server Error response is returned with the error message.
+func handelGetSingleProject(kit *kit.Kit) error {
+	ctx := kit.Request.Context()
+	id := chi.URLParam(kit.Request, "user_id")
+	fmt.Println(id)
+	name := chi.URLParam(kit.Request, "name")
+	project, err := fetchProjectFromDatabase(ctx, name)
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return kit.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Failed to fetch project : %s", err)})
+		}
+		return kit.JSON(http.StatusInternalServerError, map[string]string{"error": fmt.Sprintf("Failed to fetch project : %s", err)})
 	}
-
-	query.Select("name").Find(&results)
-
-	fmt.Printf("id = %d\nproject = %s\nsearch-term = %s\n", id, project, searchTerm)
-
-	return results
+	return kit.JSON(http.StatusCreated, map[string]any{"projects": project})
+}
+func fetchProjectFromDatabase(ctx context.Context, name string) (*Project, error) {
+	var result Project
+	query := db.Get().Table("projects").WithContext(ctx)
+	query = query.Where("LOWER(name) = ?", strings.ToLower(name))
+	err := query.Select("project_id,name,project_type, description, created_at,deadline, created_by").First(&result).Error
+	if err != nil {
+		return nil, err
+	}
+	return &result, nil
 }
 
 // createProjectsFromDatabase creates a new project in the database if it doesn't already exist.
@@ -121,35 +186,37 @@ func createProjectsFromDatabase(project *Project) (int, error) {
 }
 
 func handelUpdateProjects(kit *kit.Kit) error {
+	ctx := kit.Request.Context()
+	userid := chi.URLParam(kit.Request, "user_id")
+	fmt.Println(userid)
 	var project Project
 	err := json.NewDecoder(kit.Request.Body).Decode(&project)
 	if err != nil {
 		return kit.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid request payload : %s", err)})
 	}
-	err = updateProjectsFromDatabase(&project)
+	err = updateProjectsFromDatabase(&project, ctx)
 
+	if err == gorm.ErrRecordNotFound {
+		return kit.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Failed to fetch project : %s", err)})
+	}
 	if err != nil {
 		return kit.JSON(http.StatusInternalServerError, map[string]string{"error": fmt.Sprintf("Failed to update project : %s", err)})
 	}
 
-	return kit.JSON(http.StatusOK, map[string]string{
-		"info":       "Project updated successfully ",
-		"project_id": fmt.Sprintf("%d", project.ProjectID),
-		"user_id":    fmt.Sprintf("%d", project.CreatedBy),
-	})
+	return kit.JSON(http.StatusOK, map[string]string{"info": "Project updated successfully"})
 }
 
 // updateProjectsFromDatabase updates an existing project in the database.
 // It takes a pointer to a Project struct as input, and updates the
 // TypeProject, Description, Deadline, and CreatedBy fields of the project.
 // If the update is successful, it returns nil, otherwise it returns the error.
-func updateProjectsFromDatabase(project *Project) error {
+func updateProjectsFromDatabase(project *Project, ctx context.Context) error {
 	result := db.Get().Model(project).Updates(Project{
-		TypeProject: project.TypeProject,
+		ProjectType: project.ProjectType,
 		Description: project.Description,
 		Deadline:    project.Deadline,
 		CreatedBy:   project.CreatedBy,
-	})
+	}).WithContext(ctx)
 	if result.Error != nil {
 		return result.Error
 	}
@@ -177,4 +244,21 @@ func getAllProjectsFromDatabase() ([]Project, error) {
 		return nil, result.Error
 	}
 	return projects, nil
+}
+
+func handelDeleteProjects(kit *kit.Kit) error {
+	ctx := kit.Request.Context()
+	userID := chi.URLParam(kit.Request, "user_id")
+	fmt.Println(userID)
+	projectName := chi.URLParam(kit.Request, "name")
+	fmt.Println(projectName)
+	result := db.Get().Where("name = ?", projectName).Delete(&Project{}).WithContext(ctx)
+	if result.Error != nil {
+		if result.Error == gorm.ErrRecordNotFound {
+			return kit.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Failed to delete project : %s", result.Error)})
+		}
+		return kit.JSON(http.StatusInternalServerError, map[string]string{"error": fmt.Sprintf("Failed to delete project : %s", result.Error)})
+	}
+	kit.Response.Header().Set("HX-Trigger", "menuTrigger")
+	return kit.JSON(http.StatusOK, map[string]string{"info": "Project deleted successfully"})
 }
